@@ -1,7 +1,6 @@
 name: CarVievo
 options:
   bundleIdPrefix: com.carvievo
-  xcodeVersion: "15.0"
 settings:
   base:
     CODE_SIGNING_ALLOWED: NO
