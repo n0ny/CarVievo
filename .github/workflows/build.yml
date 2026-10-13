@@ -1,0 +1,43 @@
+name: Build CarVievo IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Kodu Cek
+        uses: actions/checkout@v4
+
+      - name: XcodeGen Kur
+        run: brew install xcodegen
+
+      - name: Projeyi Olustur
+        run: xcodegen generate
+
+      - name: Derle (Codesign Olmadan)
+        run: |
+          xcodebuild -project CarVievo.xcodeproj \
+                     -scheme CarVievo \
+                     -configuration Release \
+                     -sdk iphoneos \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     clean build
+
+      - name: IPA Paketle
+        run: |
+          mkdir -p Payload
+          cp -r build/Release-iphoneos/CarVievo.app Payload/
+          zip -r CarVievo.ipa Payload
+
+      - name: IPA Dosyasini Yukle
+        uses: actions/upload-artifact@v4
+        with:
+          name: CarVievo-Unsigned-IPA
+          path: CarVievo.ipa
