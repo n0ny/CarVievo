@@ -13,6 +13,13 @@ jobs:
       - name: Kodu Cek
         uses: actions/checkout@v4
 
+      - name: Xcode 16 Otomatik Sec
+        run: |
+          XCODE_YOLU=$(find /Applications -maxdepth 1 -name "Xcode_16*" | sort -V | tail -n 1)
+          echo "Bulunan Xcode: $XCODE_YOLU"
+          sudo xcode-select -s "$XCODE_YOLU/Contents/Developer"
+          xcodebuild -version
+
       - name: XcodeGen Kur
         run: brew install xcodegen
 
@@ -21,7 +28,7 @@ jobs:
 
       - name: Derle
         run: |
-          xcodebuild build \
+          xcodebuild clean build \
             -project CarVievo.xcodeproj \
             -scheme CarVievo \
             -configuration Release \
