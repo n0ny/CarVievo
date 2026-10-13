@@ -6,9 +6,11 @@ targets:
     type: application
     platform: iOS
     deploymentTarget: "15.0"
-    sources: [CarVievo]
+    sources:
+      - path: CarVievoApp.swift
+      - path: ContentView.swift
     info:
-      path: CarVievo/Info.plist
+      path: Info.plist
       properties:
         CFBundleDisplayName: "CarVievo"
         CFBundleShortVersionString: "1.0"
