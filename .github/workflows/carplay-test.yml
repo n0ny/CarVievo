@@ -1,0 +1,65 @@
+name: CarPlay Test IPA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'CarPlayTest.zip'
+      - '.github/workflows/carplay-test.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Kodu cek
+        uses: actions/checkout@v4
+
+      - name: Zip'i ac
+        run: unzip -q CarPlayTest.zip -d source
+
+      - name: Xcode surumu
+        run: xcodebuild -version
+
+      - name: XcodeGen kur
+        run: brew install xcodegen
+
+      - name: Projeyi olustur
+        working-directory: source/CarPlayTest
+        run: xcodegen generate
+
+      - name: Derle (imzasiz)
+        working-directory: source/CarPlayTest
+        run: |
+          set -o pipefail
+          xcodebuild build -project CarVievoTest.xcodeproj -scheme CarVievoTest \
+            -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+
+      - name: CarPlay iznini icine yaz ve IPA yap
+        working-directory: source/CarPlayTest
+        run: |
+          set -e
+          APP=build/Build/Products/Release-iphoneos/CarVievoTest.app
+          codesign --force --sign - --entitlements CarVievoTest.entitlements --timestamp=none "$APP"
+          echo "---- Uygulamanin icindeki izinler ----"
+          codesign -d --entitlements - "$APP" || true
+          mkdir -p out/Payload
+          cp -R "$APP" out/Payload/
+          cp CarVievoTest.entitlements out/
+          cd out
+          zip -qry CarVievoTest.ipa Payload
+
+      - name: IPA'yi kaydet
+        uses: actions/upload-artifact@v4
+        with:
+          name: CarVievoTest-IPA
+          path: |
+            source/CarPlayTest/out/CarVievoTest.ipa
+            source/CarPlayTest/out/CarVievoTest.entitlements
+          if-no-files-found: error
+          retention-days: 14
